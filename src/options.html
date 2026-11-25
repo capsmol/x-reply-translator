@@ -3,74 +3,73 @@
   <head>
     <meta charset="utf-8" />
     <title>X Reply Translator</title>
-    <style>
-      body {
-        width: 320px;
-        margin: 0;
-        padding: 16px;
-        font: 14px/20px -apple-system, BlinkMacSystemFont, sans-serif;
-      }
-      h1 {
-        margin: 0 0 12px;
-        font-size: 16px;
-      }
-      label {
-        display: block;
-        margin-bottom: 12px;
-      }
-      input[type='password'] {
-        box-sizing: border-box;
-        width: 100%;
-        margin-top: 4px;
-        padding: 6px 8px;
-      }
-      .hint {
-        color: #666;
-        font-size: 12px;
-        line-height: 16px;
-      }
-      button {
-        padding: 6px 14px;
-      }
-      #status {
-        margin-left: 8px;
-        color: #1a7f37;
-      }
-      footer {
-        margin-top: 16px;
-        padding-top: 12px;
-        border-top: 1px solid #ddd;
-        font-size: 12px;
-        line-height: 18px;
-      }
-      footer a {
-        color: #1d9bf0;
-        text-decoration: none;
-      }
-    </style>
+    <link rel="stylesheet" href="options.css" />
   </head>
   <body>
     <h1>X Reply Translator</h1>
-    <label>
-      <input type="checkbox" id="autoTranslate" />
-      Автоматически переводить твиты на русский
-    </label>
-    <label>
-      Ключ OpenAI API (необязательно)
-      <input type="password" id="apiKey" placeholder="sk-…" autocomplete="off" />
-      <span class="hint">
-        С ключом ответы переводит ChatGPT — с учётом твита, на который вы отвечаете, и живым английским. Без ключа —
-        Google Translate.
-      </span>
-    </label>
-    <button id="save" type="button">Сохранить</button>
-    <span id="status"></span>
+
+    <nav role="tablist">
+      <button type="button" role="tab" data-tab="general" aria-selected="true">Основное</button>
+      <button type="button" role="tab" data-tab="model" aria-selected="false">Модель</button>
+      <button type="button" role="tab" data-tab="prompt" aria-selected="false">Промпт</button>
+    </nav>
+
+    <section role="tabpanel" data-panel="general">
+      <label class="row">
+        <input type="checkbox" id="autoTranslate" />
+        Автоматически переводить твиты на русский
+      </label>
+      <label>
+        Горячая клавиша перевода ответа
+        <input type="text" id="hotkey" readonly />
+      </label>
+      <p class="hint">
+        Кликните в поле и нажмите новое сочетание. Нужна хотя бы одна из клавиш Ctrl, Alt (Option) или Cmd.
+      </p>
+    </section>
+
+    <section role="tabpanel" data-panel="model" hidden>
+      <label>
+        Провайдер
+        <select id="provider"></select>
+      </label>
+      <label>
+        Адрес API
+        <input type="url" id="baseUrl" placeholder="https://…/v1" spellcheck="false" />
+      </label>
+      <label>
+        Модель
+        <input type="text" id="model" spellcheck="false" />
+      </label>
+      <label>
+        Ключ API
+        <input type="password" id="apiKey" autocomplete="off" />
+      </label>
+      <p class="hint">
+        С ключом ответы переводит языковая модель: она видит твит, на который вы отвечаете. Без ключа — Google
+        Translate. Подходит любой OpenAI-совместимый API. Ключ хранится только в этом браузере.
+      </p>
+    </section>
+
+    <section role="tabpanel" data-panel="prompt" hidden>
+      <textarea id="systemPrompt" rows="12" spellcheck="false"></textarea>
+      <p class="hint">
+        Инструкция для модели: как переводить ваш черновик. Работает только с ключом API.
+        <button id="resetPrompt" type="button" class="link">Вернуть стандартный</button>
+      </p>
+    </section>
+
+    <div class="actions">
+      <button id="save" type="button">Сохранить</button>
+      <span id="status"></span>
+    </div>
+
     <footer>
       Автор в Telegram:
       <a href="https://t.me/lexa205dev" target="_blank" rel="noopener">@lexa205dev</a>
       ·
       <a href="https://github.com/capsmol/x-reply-translator" target="_blank" rel="noopener">GitHub</a>
     </footer>
-    <script src="options.js"></script>
+    <script type="module" src="options.js"></script>
   </body>
 </html>

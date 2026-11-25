@@ -4,7 +4,8 @@ import {
   buildReplyPrompt,
   parseGoogleResponse,
   translateGoogle,
-  translateReplyWithOpenAI
+  normalizeBaseUrl,
+  translateReplyWithLLM
 } from '../src/translate.js'
 
 const jsonResponse = (body, status = 200) => ({
@@ -54,28 +55,57 @@ test('buildReplyPrompt includes the tweet only when there is context', () => {
 
 const completion = (content, finish_reason = 'stop') => jsonResponse({ choices: [{ message: { content }, finish_reason }] })
 
-test('translateReplyWithOpenAI sends the key and returns the reply', async () => {
+const llmArgs = {
+  text: 'Согласен',
+  context: 'Ship fast',
+  apiKey: 'key-1',
+  baseUrl: 'https://api.openai.com/v1',
+  model: 'model-1',
+  systemPrompt: 'Translate it'
+}
+
+test('normalizeBaseUrl trims and requires https', () => {
+  assert.equal(normalizeBaseUrl(' https://api.example.com/v1/ '), 'https://api.example.com/v1')
+  assert.throws(() => normalizeBaseUrl('http://api.example.com/v1'))
+  assert.throws(() => normalizeBaseUrl('api.example.com'))
+  assert.throws(() => normalizeBaseUrl(''))
+})
+
+test('translateReplyWithLLM calls the chosen endpoint with the key, model and prompt', async () => {
   const { calls, fetchFn } = recordingFetch(completion(' Totally agree. '))
-  const result = await translateReplyWithOpenAI({ text: 'Согласен', context: 'Ship fast', apiKey: 'key-1' }, fetchFn)
+  const result = await translateReplyWithLLM(llmArgs, fetchFn)
   assert.deepEqual(result, { text: 'Totally agree.' })
+  assert.equal(calls[0].url, 'https://api.openai.com/v1/chat/completions')
   assert.equal(calls[0].init.headers.authorization, 'Bearer key-1')
   const body = JSON.parse(calls[0].init.body)
-  assert.equal(body.messages[0].role, 'system')
+  assert.equal(body.model, 'model-1')
+  assert.deepEqual(body.messages[0], { role: 'system', content: 'Translate it' })
   assert.match(body.messages[1].content, /Согласен/)
   assert.match(body.messages[1].content, /Ship fast/)
 })
 
-test('translateReplyWithOpenAI surfaces API error messages', async () => {
-  const { fetchFn } = recordingFetch(jsonResponse({ error: { message: 'Incorrect API key provided' } }, 401))
-  await assert.rejects(
-    translateReplyWithOpenAI({ text: 'Согласен', context: '', apiKey: 'bad' }, fetchFn),
-    /Incorrect API key/
-  )
+test('translateReplyWithLLM adds the browser-access header only for Anthropic', async () => {
+  const header = 'anthropic-dangerous-direct-browser-access'
+  const anthropic = recordingFetch(completion('ok'))
+  await translateReplyWithLLM({ ...llmArgs, baseUrl: 'https://api.anthropic.com/v1' }, anthropic.fetchFn)
+  assert.equal(anthropic.calls[0].init.headers[header], 'true')
+  const openai = recordingFetch(completion('ok'))
+  await translateReplyWithLLM(llmArgs, openai.fetchFn)
+  assert.equal(header in openai.calls[0].init.headers, false)
 })
 
-test('translateReplyWithOpenAI rejects empty and truncated replies', async () => {
-  const args = { text: 'Согласен', context: '', apiKey: 'k' }
-  await assert.rejects(translateReplyWithOpenAI(args, recordingFetch(completion('')).fetchFn))
-  await assert.rejects(translateReplyWithOpenAI(args, recordingFetch(completion('Totally', 'length')).fetchFn), /обрезан/)
-  await assert.rejects(translateReplyWithOpenAI(args, recordingFetch(jsonResponse({ choices: [] })).fetchFn))
+test('translateReplyWithLLM surfaces API error messages in any common shape', async () => {
+  const failWith = (body) => translateReplyWithLLM(llmArgs, recordingFetch(jsonResponse(body, 401)).fetchFn)
+  await assert.rejects(failWith({ error: { message: 'Incorrect API key provided' } }), /api\.openai\.com: Incorrect API key/)
+  await assert.rejects(failWith({ error: 'bad key' }), /bad key/)
+  await assert.rejects(failWith({ message: 'no access' }), /no access/)
+  await assert.rejects(failWith({ detail: 'Invalid API Key' }), /Invalid API Key/)
+  await assert.rejects(failWith([{ error: { message: 'Please pass a valid API key' } }]), /valid API key/)
+  await assert.rejects(failWith({}), /HTTP 401/)
+})
+
+test('translateReplyWithLLM rejects empty and truncated replies', async () => {
+  await assert.rejects(translateReplyWithLLM(llmArgs, recordingFetch(completion('')).fetchFn))
+  await assert.rejects(translateReplyWithLLM(llmArgs, recordingFetch(completion('Totally', 'length')).fetchFn), /обрезан/)
+  await assert.rejects(translateReplyWithLLM(llmArgs, recordingFetch(jsonResponse({ choices: [] })).fetchFn))
 })

@@ -6,10 +6,19 @@ const SCAN_DELAY_MS = 200
 const SELECTION_SYNC_MS = 50
 const RETRY_COOLDOWN_MS = 30000
 const CYRILLIC = /[а-яё]/i
+const DEFAULT_HOTKEY = {
+  code: 'KeyT',
+  ctrl: false,
+  alt: true,
+  shift: false,
+  meta: false,
+  label: navigator.platform.startsWith('Mac') ? '⌥T' : 'Alt+T'
+}
 
 const tweetCache = new Map()
 const watchedText = new WeakMap()
 let autoTranslate = true
+let hotkey = DEFAULT_HOTKEY
 let scanScheduled = false
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -169,9 +178,11 @@ const restoreDraft = async (editor, bar) => {
   }
 }
 
+const translateLabel = () => `RU → EN · ${hotkey.label}`
+
 const createBar = (editor) => {
   const bar = element('div', 'xrt-bar')
-  const translateButton = element('button', 'xrt-button', 'RU → EN · ⌥T')
+  const translateButton = element('button', 'xrt-button xrt-translate', translateLabel())
   const restoreButton = element('button', 'xrt-button xrt-restore', 'Вернуть русский')
   const original = element('div', 'xrt-original')
   translateButton.type = 'button'
@@ -195,6 +206,8 @@ function ensureBar(editor) {
 
 const syncBar = (editor) => {
   const bar = ensureBar(editor)
+  const translateButton = bar.querySelector('.xrt-translate')
+  if (translateButton.textContent !== translateLabel()) translateButton.textContent = translateLabel()
   if (!bar.dataset.busy && !editor.innerText.trim()) showOriginal(bar, '')
 }
 
@@ -210,8 +223,15 @@ const scheduleScan = () => {
   setTimeout(scan, SCAN_DELAY_MS)
 }
 
+const matchesHotkey = (event) =>
+  event.code === hotkey.code &&
+  event.ctrlKey === hotkey.ctrl &&
+  event.altKey === hotkey.alt &&
+  event.shiftKey === hotkey.shift &&
+  event.metaKey === hotkey.meta
+
 const onKeydown = (event) => {
-  if (!event.altKey || event.code !== 'KeyT' || event.metaKey || event.ctrlKey) return
+  if (!matchesHotkey(event)) return
   const editor = event.target.closest?.(EDITOR)
   if (!editor) return
   event.preventDefault()
@@ -220,11 +240,12 @@ const onKeydown = (event) => {
 }
 
 const start = async () => {
-  const settings = await chrome.storage.sync.get({ autoTranslate: true })
+  const settings = await chrome.storage.sync.get({ autoTranslate: true, hotkey: DEFAULT_HOTKEY })
   autoTranslate = settings.autoTranslate
+  hotkey = settings.hotkey
   chrome.storage.onChanged.addListener((changes) => {
-    if (!changes.autoTranslate) return
-    autoTranslate = changes.autoTranslate.newValue
+    if (changes.autoTranslate) autoTranslate = changes.autoTranslate.newValue
+    if (changes.hotkey) hotkey = changes.hotkey.newValue ?? DEFAULT_HOTKEY
     scheduleScan()
   })
   document.addEventListener('keydown', onKeydown, true)

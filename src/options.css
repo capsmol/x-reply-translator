@@ -1,0 +1,157 @@
+:root {
+  color-scheme: light dark;
+  --accent: #1d9bf0;
+  --muted: #71767b;
+  --border: rgba(128, 128, 128, 0.35);
+}
+
+body {
+  width: 380px;
+  margin: 0;
+  padding: 16px;
+  font: 14px/20px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+nav {
+  display: flex;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+nav button {
+  flex: 1;
+  margin-bottom: -1px;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+nav button[aria-selected='true'] {
+  border-bottom-color: var(--accent);
+  color: inherit;
+}
+
+section {
+  min-height: 300px;
+}
+
+section[hidden] {
+  display: none;
+}
+
+label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+label.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+input[type='text'],
+input[type='url'],
+input[type='password'],
+select,
+textarea {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+textarea {
+  margin-top: 0;
+  font: 12px/17px ui-monospace, SFMono-Regular, Menlo, monospace;
+  resize: vertical;
+}
+
+#hotkey {
+  width: 160px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  outline: 2px solid rgba(29, 155, 240, 0.3);
+}
+
+.hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+#save {
+  flex-shrink: 0;
+  padding: 8px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#status {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+#status.error {
+  color: #f4212e;
+}
+
+button.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+footer {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}

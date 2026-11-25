@@ -1,11 +1,24 @@
-import { translateGoogle, translateReplyWithOpenAI } from './translate.js'
+import {
+  DEFAULT_BASE_URL,
+  DEFAULT_MODEL,
+  DEFAULT_SYSTEM_PROMPT,
+  translateGoogle,
+  translateReplyWithLLM
+} from './translate.js'
+
+const LLM_DEFAULTS = { apiKey: '', baseUrl: DEFAULT_BASE_URL, model: DEFAULT_MODEL, systemPrompt: '' }
 
 chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' })
 
 const translateReply = async ({ text, context }) => {
-  const { apiKey } = await chrome.storage.local.get('apiKey')
-  if (!apiKey) return translateGoogle(text, 'en')
-  return translateReplyWithOpenAI({ text, context, apiKey })
+  const settings = await chrome.storage.local.get(LLM_DEFAULTS)
+  if (!settings.apiKey) return translateGoogle(text, 'en')
+  return translateReplyWithLLM({
+    ...settings,
+    text,
+    context,
+    systemPrompt: settings.systemPrompt || DEFAULT_SYSTEM_PROMPT
+  })
 }
 
 const handlers = {
