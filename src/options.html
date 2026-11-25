@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>X Reply Translator</title>
+    <style>
+      body {
+        width: 320px;
+        margin: 0;
+        padding: 16px;
+        font: 14px/20px -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 16px;
+      }
+      label {
+        display: block;
+        margin-bottom: 12px;
+      }
+      input[type='password'] {
+        box-sizing: border-box;
+        width: 100%;
+        margin-top: 4px;
+        padding: 6px 8px;
+      }
+      .hint {
+        color: #666;
+        font-size: 12px;
+        line-height: 16px;
+      }
+      button {
+        padding: 6px 14px;
+      }
+      #status {
+        margin-left: 8px;
+        color: #1a7f37;
+      }
+      footer {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid #ddd;
+        font-size: 12px;
+        line-height: 18px;
+      }
+      footer a {
+        color: #1d9bf0;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>X Reply Translator</h1>
+    <label>
+      <input type="checkbox" id="autoTranslate" />
+      Автоматически переводить твиты на русский
+    </label>
+    <label>
+      Ключ OpenAI API (необязательно)
+      <input type="password" id="apiKey" placeholder="sk-…" autocomplete="off" />
+      <span class="hint">
+        С ключом ответы переводит ChatGPT — с учётом твита, на который вы отвечаете, и живым английским. Без ключа —
+        Google Translate.
+      </span>
+    </label>
+    <button id="save" type="button">Сохранить</button>
+    <span id="status"></span>
+    <footer>
+      Автор в Telegram:
+      <a href="https://t.me/lexa205dev" target="_blank" rel="noopener">@lexa205dev</a>
+      ·
+      <a href="https://github.com/capsmol/x-reply-translator" target="_blank" rel="noopener">GitHub</a>
+    </footer>
+    <script src="options.js"></script>
+  </body>
+</html>
